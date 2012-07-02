@@ -351,6 +351,7 @@ void Anumber::operator /= (Anumber op) {
 			int rem3 = reminder.buffer[k + (BUFLEN - divisor_len)] * 100 + reminder.buffer[k + (BUFLEN - divisor_len) - 1] * 10 + reminder.buffer[k + (BUFLEN - divisor_len) - 2];
 			int div2 = divisor[(BUFLEN - divisor_len)] * 10 + divisor[(BUFLEN - divisor_len) - 1];
 			quotient_digit = rem3 / div2;
+		}
 		dq = Product(d, qt, m);
 		if(Smaller(r, dq, k, m)) {
 			qt = qt - 1;
