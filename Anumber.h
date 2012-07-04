@@ -11,7 +11,9 @@ class Anumber {
 		void show_all();
 		void invert();
 		void exp10(int);
+		void pow(Anumber);
 		void operator = (Anumber);
+		void operator = (char);
 		void operator += (Anumber);
 		void operator -= (Anumber);
 		Anumber operator + (Anumber);
@@ -26,8 +28,11 @@ class Anumber {
 		Anumber operator / (char);
 		Anumber operator % (Anumber);
 		char operator % (char);
+		Anumber operator ^ (Anumber);
+		void operator ^= (Anumber);
 		bool operator == (int);
 		bool operator == (Anumber);
+		bool operator != (int);
 		bool operator > (Anumber);
 		bool operator < (Anumber);
 		

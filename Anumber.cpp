@@ -110,6 +110,37 @@ void Anumber::exp10(int shift) {
 	}
 }
 
+void Anumber::pow(Anumber op) {
+	Anumber base = *this;
+	Anumber exp = op;
+	
+	int oplen = op.len();
+	char* exp2 = (char*) malloc(oplen * 5);
+	
+	int i=0;
+	while(!(exp == 0)) {
+		exp2[i] = exp % 2;
+		printf("%d",exp2[i]);
+		exp /= 2;
+		i++;
+	}
+	printf("\n");
+	int len2 = i;
+	
+	Anumber pow;
+	pow = 1;
+	
+	for(i=len2 - 1; i>=0; i--) {
+		printf("%d ", exp2[i]);
+		pow *= pow;
+		if(exp2[i])
+			pow *= base;
+		pow.show();
+	}
+	
+	*this = pow;
+}
+
 void Anumber::operator = (Anumber op) {
 	//strncpy(buffer, op.buffer, BUFLEN);
 	int i;
@@ -117,6 +148,14 @@ void Anumber::operator = (Anumber op) {
 		buffer[i] = op.buffer[i];
 	
 	sign = op.sign;
+}
+
+void Anumber::operator = (char op) {
+	if(abs(op) < 10) {
+		buffer[BUFLEN - 1] = op;
+		
+		sign = (op < 0);
+	}
 }
 
 void Anumber::operator += (Anumber op) {
@@ -242,6 +281,21 @@ bool Anumber::operator == (Anumber op) {
 	//to do
 }
 
+bool Anumber::operator != (int num) { //DOES NOT WORK PROPERLY
+	if(num == 0) {
+		int i = 0, lung = len();
+		bool found = false;
+		while(!found && i<lung) {
+			if(buffer[i] != 0) found = true;
+			i++;
+		}
+		
+		return found;
+	}
+	
+	return false; //it counts only 0
+}
+
 bool Anumber::operator > (Anumber op) {
 	if(sign && !op.sign) return false;
 	if(!sign && op.sign) return true;
@@ -283,16 +337,24 @@ void Anumber::operator *= (Anumber op) {
 }
 
 void Anumber::operator *= (int num) {
-	int shift = 0;
+	float shift = log10(num);
 	
-	shift = log10(num);
-	
-	if(shift == 0) return;
-	
-	int i;
-	for(i = shift; i!=BUFLEN; i++) {
-		buffer[i - shift] = buffer[i];
-		if(i >= BUFLEN - shift) buffer[i] = 0;
+	if(num % 10 == 0) {
+		if(shift == 0) return;
+		
+		int i;
+		for(i = shift; i!=BUFLEN; i++) {
+			buffer[i - (int)shift] = buffer[i];
+			if(i >= BUFLEN - shift) buffer[i] = 0;
+		}
+	}
+	else {
+		int i;
+		Anumber result;
+		for(i=0; i!=num; i++)
+			result += *this;
+		
+		*this = result;
 	}
 }
 
@@ -344,24 +406,39 @@ void Anumber::operator /= (Anumber op) {
 	Anumber reminder = *this * factor;
 	Anumber divisor = op * factor;
 	
+	Anumber part_product;
+	
+	Anumber quotient;
+	
 	int k;
 	char quotient_digit;
 	for(k = dividend_len - divisor_len; k >= 0; k--) {
 		{
-			int rem3 = reminder.buffer[k + (BUFLEN - divisor_len)] * 100 + reminder.buffer[k + (BUFLEN - divisor_len) - 1] * 10 + reminder.buffer[k + (BUFLEN - divisor_len) - 2];
-			int div2 = divisor[(BUFLEN - divisor_len)] * 10 + divisor[(BUFLEN - divisor_len) - 1];
-			quotient_digit = rem3 / div2;
+			printf("££££ %d, %d, %d, %d\n", k, k + (BUFLEN - divisor_len), BUFLEN - divisor_len, reminder.buffer[(BUFLEN - divisor_len)]);
+			printf("%%%% %d, %d, %d\n", reminder.buffer[k + (BUFLEN - divisor_len)], reminder.buffer[k + (BUFLEN - divisor_len) + 1], reminder.buffer[k + (BUFLEN - divisor_len) + 2]);
+			printf("@@@@ %d, %d, %d\n", reminder.buffer[k + (BUFLEN - divisor_len)] * 100, reminder.buffer[k + (BUFLEN - divisor_len) + 1] * 10, reminder.buffer[k + (BUFLEN - divisor_len) + 2]);
+			int rem3 = reminder.buffer[k + (BUFLEN - divisor_len)] * 100 + reminder.buffer[k + (BUFLEN - divisor_len) + 1] * 10 + reminder.buffer[k + (BUFLEN - divisor_len) + 2];
+			int div2 = divisor.buffer[(BUFLEN - divisor_len)] * 10 + divisor.buffer[(BUFLEN - divisor_len) + 1];
+			printf("%d, %d, %d\n", rem3, div2, rem3/div2);
+			quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
 		}
-		dq = Product(d, qt, m);
-		if(Smaller(r, dq, k, m)) {
-			qt = qt - 1;
-			dq = Product(d, qt, m);
+		part_product = divisor * quotient_digit; //dq = Product(d, qt, m);
+		
+		if(reminder < part_product) {
+			quotient_digit = quotient_digit - 1;
+			part_product = divisor * quotient_digit;
 		}
-		
-		quotient[k] = qt;
-		
-		r = Difference(r, dq, k, m);
+		quotient.buffer[k] = quotient_digit;
+		reminder -= part_product; //r = Difference(r, dq, k, m);
 	}
+	
+	char temp;
+	for(k=0; k!=(dividend_len - divisor_len) + 1; k++) {
+		quotient.buffer[k + BUFLEN - ((dividend_len - divisor_len) + 1)] = quotient.buffer[k];
+		quotient.buffer[k] = 0;
+	}
+	
+	*this = quotient;
 }
 
 void Anumber::operator /= (char op) {
