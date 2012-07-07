@@ -15,7 +15,12 @@ Anumber::Anumber() {
 }
 
 Anumber::Anumber(char* init) {
-	sign = (init < 0);
+	if(*init == '-') {
+		sign = true;
+		init++;
+	}
+	else sign = false;
+	
 	
 	memset(buffer, 0, BUFLEN);
 	
@@ -29,6 +34,19 @@ Anumber::Anumber(char* init) {
 	for(i=0; i!=lung; i++) {
 		*ptr -= 48;
 		ptr++;
+	}
+}
+
+Anumber::Anumber(int init) {
+	sign = (init < 0);
+	
+	memset(buffer, 0, BUFLEN);
+	
+	char *ptr;
+	ptr = buffer + (BUFLEN - 1);
+	while(init != 0) {
+		*ptr = init % 10;
+		init /= 10;
 	}
 }
 
@@ -48,6 +66,7 @@ void Anumber::split(Anumber *half1, Anumber *half2) {
 	int i;
 	int lung = len();
 	int med = lung / 2;
+	//if(lung % 2 == 1) med++;
 	
 	char *tmp = buffer + (BUFLEN - lung);
 	char *tmp1 = half1->buffer + (BUFLEN - (lung - med));
@@ -85,6 +104,7 @@ void Anumber::show() {
 		printf("-");
 	
 	int i;
+	//printf("len = %d\n", len());
 	for(i=BUFLEN - len(); i!=BUFLEN; i++)
 		printf("%d", buffer[i]);
 	printf("\n");
@@ -110,35 +130,74 @@ void Anumber::exp10(int shift) {
 	}
 }
 
-void Anumber::pow(Anumber op) {
+int Anumber::Alog10() { //it is supposed that the number is a 10 pow (i dont check the is10pow())
+	int i;
+	int returning = 0;
+	bool found = false;
+	
+	for(i = 0; i!=BUFLEN; i++)
+		if(buffer[i] == 1) found = true;
+	
+	for(;i!=BUFLEN && found; i++)
+		returning++;
+	
+	return returning;
+}
+
+bool Anumber::is10pow(){
+	int i;
+	bool found = false;
+	
+	for(i = 0; i!=BUFLEN; i++)
+		if(buffer[i] == 1) found = true;
+	
+	for(;i!=BUFLEN && found; i++)
+		if(buffer[i] != 0) return false;
+	
+	if(found) return true;
+	
+	return false;
+}
+
+Anumber Anumber::pow(Anumber op) { //does not work
+	/*Anumber result;
+	
+	result = *this;
+	
+	Anumber i;
+	while(!(i == op)) {
+		result *= *this;
+		++i;
+	}
+	
+	*this = result;*/
+	Anumber returning;
 	Anumber base = *this;
 	Anumber exp = op;
 	
 	int oplen = op.len();
-	char* exp2 = (char*) malloc(oplen * 5);
+	char* exp2 = (char*) malloc(oplen * oplen);
 	
 	int i=0;
 	while(!(exp == 0)) {
 		exp2[i] = exp % 2;
-		printf("%d",exp2[i]);
 		exp /= 2;
 		i++;
 	}
-	printf("\n");
 	int len2 = i;
 	
 	Anumber pow;
 	pow = 1;
 	
 	for(i=len2 - 1; i>=0; i--) {
-		printf("%d ", exp2[i]);
 		pow *= pow;
 		if(exp2[i])
 			pow *= base;
-		pow.show();
 	}
 	
-	*this = pow;
+	returning = pow;
+	
+	return returning;
 }
 
 void Anumber::operator = (Anumber op) {
@@ -186,6 +245,30 @@ void Anumber::operator -= (Anumber op) {
 	}
 	
 	if(carry) sign = !sign;
+}
+
+Anumber Anumber::operator ++ () {	
+	char carry = 0;
+	int i;
+	
+	i = BUFLEN - 1;
+	buffer[i] += 1;
+	if(buffer[i] > 9) {
+		carry = 1;
+		buffer[i] -= 10;
+	}
+	i--;
+	
+	for(; i>=0; i--) {
+		buffer[i] += carry;
+		if(buffer[i] > 9) {
+			carry = 1;
+			buffer[i] -= 10;
+		}
+		else carry = 0;
+	}
+	
+	return *this;
 }
 
 Anumber Anumber::operator + (Anumber op) {
@@ -270,6 +353,35 @@ Anumber Anumber::operator - (Anumber op) {
 	return result;
 }
 
+Anumber Anumber::operator - (char op) {
+	Anumber returning = *this;
+	
+	if(op == 1) { //only 1 admitted... dont make 0 - 1 !!!!!!!!! OVERFLOW
+		char carry = 0;
+		int i;
+		
+		i = BUFLEN - 1;
+		
+		returning.buffer[i] -= 1;
+		if(returning.buffer[i] < 0) {
+			carry = 1;
+			returning.buffer[i] += 10;
+		}
+		i--;
+		
+		for(; i>=0; i--) {
+			returning.buffer[i] -= carry;
+			if(returning.buffer[i] < 0) {
+				carry = 1;
+				returning.buffer[i] += 10;
+			}
+			else carry = 0;
+		}
+		
+		return returning;
+	}
+}
+
 bool Anumber::operator == (int num) {
 	if(num == 0)
 		return !(len());
@@ -278,7 +390,19 @@ bool Anumber::operator == (int num) {
 }
 
 bool Anumber::operator == (Anumber op) {
-	//to do
+	if(sign != op.sign) return false;
+	
+	bool found = false;
+	int i = 0;
+	
+	while (!found && i!=BUFLEN) {
+		if(buffer[i] != op.buffer[i])
+			found = true;
+		i++;
+	}
+	
+	if(found) return false;
+	else return true;
 }
 
 bool Anumber::operator != (int num) { //DOES NOT WORK PROPERLY
@@ -395,7 +519,31 @@ Anumber Anumber::operator / (char op) {
 }
 
 void Anumber::operator /= (Anumber op) {
-	Anumber result;
+	if(op.is10pow()) {
+		int i;
+		
+		Anumber returning = op;
+		
+		int lung = op.Alog10();
+		
+		for(i=BUFLEN-1; i>=0; i--) {
+			if(i >= lung)
+				returning.buffer[i] = returning.buffer[i - lung];
+			else returning.buffer[i] = 0;
+		}
+	}
+	
+	Anumber dividend, quotient;
+	dividend = *this;
+	
+	while(dividend > op) {
+		dividend -= op;
+		++quotient;
+	}
+	
+	*this = quotient;
+	
+	/*Anumber result;
 	
 	if(len() < op.len()) *this = result;
 	
@@ -406,30 +554,41 @@ void Anumber::operator /= (Anumber op) {
 	Anumber reminder = *this * factor;
 	Anumber divisor = op * factor;
 	
+	
+	printf("reminder ");
+	reminder.show();
+	printf("divisor ");
+	divisor.show();
+	
+	dividend_len = reminder.len();
+	divisor_len = divisor.len();
+	
 	Anumber part_product;
 	
 	Anumber quotient;
 	
 	int k;
 	char quotient_digit;
-	for(k = dividend_len - divisor_len; k >= 0; k--) {
-		{
-			printf("££££ %d, %d, %d, %d\n", k, k + (BUFLEN - divisor_len), BUFLEN - divisor_len, reminder.buffer[(BUFLEN - divisor_len)]);
-			printf("%%%% %d, %d, %d\n", reminder.buffer[k + (BUFLEN - divisor_len)], reminder.buffer[k + (BUFLEN - divisor_len) + 1], reminder.buffer[k + (BUFLEN - divisor_len) + 2]);
-			printf("@@@@ %d, %d, %d\n", reminder.buffer[k + (BUFLEN - divisor_len)] * 100, reminder.buffer[k + (BUFLEN - divisor_len) + 1] * 10, reminder.buffer[k + (BUFLEN - divisor_len) + 2]);
-			int rem3 = reminder.buffer[k + (BUFLEN - divisor_len)] * 100 + reminder.buffer[k + (BUFLEN - divisor_len) + 1] * 10 + reminder.buffer[k + (BUFLEN - divisor_len) + 2];
-			int div2 = divisor.buffer[(BUFLEN - divisor_len)] * 10 + divisor.buffer[(BUFLEN - divisor_len) + 1];
-			printf("%d, %d, %d\n", rem3, div2, rem3/div2);
-			quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
-		}
-		part_product = divisor * quotient_digit; //dq = Product(d, qt, m);
+	for(k = 0; k != dividend_len - divisor_len; k++) {
+		printf("reminder ");
+		reminder.show();
+		int rem3 = reminder.buffer[k + (BUFLEN - divisor_len)] * 100 + reminder.buffer[k + (BUFLEN - divisor_len) + 1] * 10 + reminder.buffer[k + (BUFLEN - divisor_len) + 2];
+		int div2 = divisor.buffer[(BUFLEN - divisor_len)] * 10 + divisor.buffer[(BUFLEN - divisor_len) + 1];
+			
+		quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
+		
+		part_product = divisor * quotient_digit;
 		
 		if(reminder < part_product) {
 			quotient_digit = quotient_digit - 1;
 			part_product = divisor * quotient_digit;
 		}
+		
+		//quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
+		
 		quotient.buffer[k] = quotient_digit;
-		reminder -= part_product; //r = Difference(r, dq, k, m);
+		printf("part_product "); part_product.show();
+		reminder -= part_product;
 	}
 	
 	char temp;
@@ -438,7 +597,7 @@ void Anumber::operator /= (Anumber op) {
 		quotient.buffer[k] = 0;
 	}
 	
-	*this = quotient;
+	*this = quotient / factor;*/
 }
 
 void Anumber::operator /= (char op) {
@@ -467,14 +626,36 @@ void Anumber::operator /= (char op) {
 Anumber Anumber::operator % (Anumber op) {
 	Anumber result;
 	
+	if(op.is10pow()) {
+		int i;
+		int lung = BUFLEN - op.Alog10();
+		for(i = BUFLEN - 1; i!=lung; i--)
+			result.buffer[i] = op.buffer[i];
+		
+		return result;
+	}
+	
 	if(len() < op.len()) {
 		result = *this;
 		return result;
 	}
+	Anumber b = 10;
+	Anumber k = op.len();
+	Anumber u = b.pow(k*2) / op;
 	
+	Anumber q1 = *this / (b.pow(k-1));
+	Anumber q2 = q1 * u;
+	Anumber q3 = q2 / (b.pow(++k)); //now k is k + 1
 	
+	Anumber r1 = *this % b.pow(k);
+	Anumber r2 = (q3 * op) % b.pow(k);
+	Anumber r = r1 - r2;
 	
-	return result;
+	if(r.sign) r += b.pow(k);
+	
+	while(r > op) r -= op;
+	
+	return r;
 }
 
 char Anumber::operator % (char op) {
@@ -491,6 +672,8 @@ char Anumber::operator % (char op) {
 }
 
 Anumber karatsuba(Anumber op1, Anumber op2) {
+	bool div1 = false, div2 = false;
+	
 	if(op1 == 0 || op2 == 0) {
 		Anumber zero;
 		return zero;
@@ -499,7 +682,15 @@ Anumber karatsuba(Anumber op1, Anumber op2) {
 		return schoolbook(op1, op2);
 	
 	char len1 = op1.len();
+	if(len1 % 2 == 1) {
+		len1++;
+		div1 = true;
+	}
 	char len2 = op2.len();
+	if(len2 % 2 == 1) {
+		len2++;
+		div2 = true;
+	}
 	char lung = (len1 > len2) ? len1 : len2;
 	
 	Anumber a;
@@ -511,6 +702,9 @@ Anumber karatsuba(Anumber op1, Anumber op2) {
 	op1.split(&half11, &half12);
 	op2.split(&half21, &half22);
 	
+	if(div1) half12.exp10(1);
+	if(div2) half22.exp10(1);
+	
 	a = half11 * half21;
 	b = half12 * half22;
 	
@@ -521,6 +715,11 @@ Anumber karatsuba(Anumber op1, Anumber op2) {
 	a.exp10(lung);
 	c.exp10(lung / 2);
 	returning = a + c + b;
+	
+	if(div1)
+		returning /= 10;
+	if(div2)
+		returning /= 10;
 	
 	return returning;
 }

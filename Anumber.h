@@ -1,9 +1,10 @@
-#define BUFLEN 109
+#define BUFLEN 200
 
 class Anumber {
 	public:
 		Anumber();
 		Anumber(char*);
+		Anumber(int);
 		int len();
 		void split(Anumber*, Anumber*);
 		void random();
@@ -11,13 +12,17 @@ class Anumber {
 		void show_all();
 		void invert();
 		void exp10(int);
-		void pow(Anumber);
+		int Alog10();
+		bool is10pow();
+		Anumber pow(Anumber);
 		void operator = (Anumber);
 		void operator = (char);
+		Anumber operator ++ ();
 		void operator += (Anumber);
 		void operator -= (Anumber);
 		Anumber operator + (Anumber);
 		Anumber operator - (Anumber);
+		Anumber operator - (char);
 		void operator *= (Anumber);
 		void operator *= (int);
 		Anumber operator * (Anumber);
