@@ -47,6 +47,7 @@ Anumber::Anumber(int init) {
 	while(init != 0) {
 		*ptr = init % 10;
 		init /= 10;
+		ptr--;
 	}
 }
 
@@ -60,6 +61,10 @@ int Anumber::len() {
 	}
 	
 	return BUFLEN - i;
+}
+
+Anumber Anumber::invers() {
+	//euclide esteso
 }
 
 void Anumber::split(Anumber *half1, Anumber *half2) {
@@ -90,7 +95,7 @@ void Anumber::random() {
 	
 	int i;
 	int len = BUFLEN / 10;
-	for(i=BUFLEN - 1; i!=BUFLEN - len; i--)
+	for(i=BUFLEN - 1; i>=BUFLEN - len; i--)
 		buffer[i] = rand()%10;
 }
 
@@ -135,7 +140,7 @@ int Anumber::Alog10() { //it is supposed that the number is a 10 pow (i dont che
 	int returning = 0;
 	bool found = false;
 	
-	for(i = 0; i!=BUFLEN; i++)
+	for(i = 0; i!=BUFLEN && !found; i++)
 		if(buffer[i] == 1) found = true;
 	
 	for(;i!=BUFLEN && found; i++)
@@ -148,7 +153,7 @@ bool Anumber::is10pow(){
 	int i;
 	bool found = false;
 	
-	for(i = 0; i!=BUFLEN; i++)
+	for(i = 0; i!=BUFLEN && !found; i++)
 		if(buffer[i] == 1) found = true;
 	
 	for(;i!=BUFLEN && found; i++)
@@ -171,6 +176,9 @@ Anumber Anumber::pow(Anumber op) { //does not work
 	}
 	
 	*this = result;*/
+	
+	printf("doing pow...\n");
+	
 	Anumber returning;
 	Anumber base = *this;
 	Anumber exp = op;
@@ -196,6 +204,8 @@ Anumber Anumber::pow(Anumber op) { //does not work
 	}
 	
 	returning = pow;
+	
+	printf("...done\n");
 	
 	return returning;
 }
@@ -385,8 +395,10 @@ Anumber Anumber::operator - (char op) {
 bool Anumber::operator == (int num) {
 	if(num == 0)
 		return !(len());
+	if(num == 1 && len() == 1 && buffer[BUFLEN - 1] == 1)
+		return true;
 	
-	return false; //it counts only 0
+	return false; //it counts only 0 and 1
 }
 
 bool Anumber::operator == (Anumber op) {
@@ -519,6 +531,7 @@ Anumber Anumber::operator / (char op) {
 }
 
 void Anumber::operator /= (Anumber op) {
+	printf("doing division...\n");
 	if(op.is10pow()) {
 		int i;
 		
@@ -531,9 +544,11 @@ void Anumber::operator /= (Anumber op) {
 				returning.buffer[i] = returning.buffer[i - lung];
 			else returning.buffer[i] = 0;
 		}
+		
+		return;
 	}
 	
-	Anumber dividend, quotient;
+	/*Anumber dividend, quotient;
 	dividend = *this;
 	
 	while(dividend > op) {
@@ -542,8 +557,9 @@ void Anumber::operator /= (Anumber op) {
 	}
 	
 	*this = quotient;
+	printf("...done\n");*/
 	
-	/*Anumber result;
+	Anumber result;
 	
 	if(len() < op.len()) *this = result;
 	
@@ -570,34 +586,42 @@ void Anumber::operator /= (Anumber op) {
 	int k;
 	char quotient_digit;
 	for(k = 0; k != dividend_len - divisor_len; k++) {
-		printf("reminder ");
-		reminder.show();
-		int rem3 = reminder.buffer[k + (BUFLEN - divisor_len)] * 100 + reminder.buffer[k + (BUFLEN - divisor_len) + 1] * 10 + reminder.buffer[k + (BUFLEN - divisor_len) + 2];
+		printf("reminder "); reminder.show();
+		int rem3 = reminder.buffer[k + (BUFLEN - dividend_len)] * 100 + reminder.buffer[k + (BUFLEN - dividend_len) + 1] * 10 + reminder.buffer[k + (BUFLEN - dividend_len) + 2];
 		int div2 = divisor.buffer[(BUFLEN - divisor_len)] * 10 + divisor.buffer[(BUFLEN - divisor_len) + 1];
-			
+		
 		quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
 		
-		part_product = divisor * quotient_digit;
 		
+		printf("___________\n");
+		divisor.show();
+		printf("%d\n", quotient_digit);
+		printf("___________\n");
+		part_product = divisor * quotient_digit;
+		printf("reminder "); reminder.show();
+		printf("part_product "); part_product.show();
 		if(reminder < part_product) {
+			printf("<<<<<<<<<<<<<<<<<<\n");
 			quotient_digit = quotient_digit - 1;
 			part_product = divisor * quotient_digit;
 		}
 		
-		//quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
-		
 		quotient.buffer[k] = quotient_digit;
+		
 		printf("part_product "); part_product.show();
 		reminder -= part_product;
+		printf("reminder "); reminder.show();
 	}
 	
 	char temp;
-	for(k=0; k!=(dividend_len - divisor_len) + 1; k++) {
-		quotient.buffer[k + BUFLEN - ((dividend_len - divisor_len) + 1)] = quotient.buffer[k];
-		quotient.buffer[k] = 0;
+	int i;
+	for(i=0; i!=k; i++) {
+		quotient.buffer[BUFLEN - k + i] = quotient.buffer[i];
+		quotient.buffer[i] = 0;
 	}
+	printf("quotient = "); quotient.show();
 	
-	*this = quotient / factor;*/
+	*this = quotient;
 }
 
 void Anumber::operator /= (char op) {
@@ -624,13 +648,14 @@ void Anumber::operator /= (char op) {
 }
 
 Anumber Anumber::operator % (Anumber op) {
+	printf("doing mod...\n");
 	Anumber result;
 	
 	if(op.is10pow()) {
 		int i;
 		int lung = BUFLEN - op.Alog10();
-		for(i = BUFLEN - 1; i!=lung; i--)
-			result.buffer[i] = op.buffer[i];
+		for(i = BUFLEN - 1; i>=lung; i--)
+			result.buffer[i] = buffer[i];
 		
 		return result;
 	}
@@ -639,22 +664,25 @@ Anumber Anumber::operator % (Anumber op) {
 		result = *this;
 		return result;
 	}
+	printf("trace1\n");
 	Anumber b = 10;
 	Anumber k = op.len();
+	printf("trace1.2\n");
 	Anumber u = b.pow(k*2) / op;
-	
+	printf("trace2\n");
 	Anumber q1 = *this / (b.pow(k-1));
+	printf("trace3\n");
 	Anumber q2 = q1 * u;
 	Anumber q3 = q2 / (b.pow(++k)); //now k is k + 1
-	
+	printf("trace4\n");
 	Anumber r1 = *this % b.pow(k);
 	Anumber r2 = (q3 * op) % b.pow(k);
 	Anumber r = r1 - r2;
-	
+	printf("trace5\n");
 	if(r.sign) r += b.pow(k);
-	
-	while(r > op) r -= op;
-	
+	printf("trace6\n");
+	while((r > op) || (r == op)) r -= op;
+	printf("...done\n");
 	return r;
 }
 
@@ -757,11 +785,6 @@ Anumber schoolbook(Anumber op1, Anumber op2) {
 	return result;
 }
 
-Anumber Aabs(Anumber op) {
-	op.sign = false;
-	return op;
-}
-
 void Anumber::invert() {
 	int i;
 	char temp;
@@ -770,4 +793,52 @@ void Anumber::invert() {
 		buffer[i] = buffer[BUFLEN - 1 - i];
 		buffer[BUFLEN - 1 - i] = temp;
 	}
+}
+
+Anumber Aabs(Anumber op) {
+	op.sign = false;
+	return op;
+}
+
+Anumber MCD(Anumber a, Anumber b) {
+	if(b == 0) return a;
+	else return MCD(b, a % b);
+}
+
+Anumber newPrime() {
+	Anumber p;
+	
+	bool found = false;
+	int tentativi = 0;;
+	
+	srand(time(NULL));
+	int i;
+	int len = BUFLEN / 10;
+	
+	while(!found) {
+		i=BUFLEN - 1;
+		p.buffer[i] = ((rand()%5) * 2) + 1;
+		i--;
+		for(; i>BUFLEN - len; i--)
+			p.buffer[i] = rand()%10;
+		p.buffer[i] = (rand()%9) + 1;
+		
+		Anumber n(len);
+		Anumber a(2);
+		Anumber resto = a.pow(p - 1) % p;
+		
+		if(resto == 1) found = true;
+		
+		tentativi++;
+		printf("%d\n", tentativi);
+	}
+	
+	printf("tentativi = %d\n", tentativi);
+	
+	return p;
+}
+
+bool coprime(Anumber a, Anumber b) {
+	if(MCD(a, b) == 1) return true;
+	return false;
 }

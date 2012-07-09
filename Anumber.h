@@ -14,6 +14,7 @@ class Anumber {
 		void exp10(int);
 		int Alog10();
 		bool is10pow();
+		Anumber invers();
 		Anumber pow(Anumber);
 		void operator = (Anumber);
 		void operator = (char);
@@ -46,3 +47,6 @@ class Anumber {
 };
 
 Anumber Aabs(Anumber);
+Anumber MCD(Anumber, Anumber);
+Anumber newPrime();
+bool coprime(Anumber, Anumber);
