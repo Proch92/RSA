@@ -14,7 +14,7 @@ class Anumber {
 		void exp10(int);
 		int Alog10();
 		bool is10pow();
-		Anumber invers();
+		Anumber invers(Anumber);
 		Anumber pow(Anumber);
 		void operator = (Anumber);
 		void operator = (char);

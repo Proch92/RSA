@@ -7,6 +7,7 @@
 
 Anumber karatsuba(Anumber, Anumber);
 Anumber schoolbook(Anumber, Anumber);
+void eucEx(Anumber, Anumber, Anumber*, Anumber*);
 
 Anumber::Anumber() {
 	sign = false;
@@ -63,8 +64,29 @@ int Anumber::len() {
 	return BUFLEN - i;
 }
 
-Anumber Anumber::invers() {
+Anumber Anumber::invers(Anumber m) {
 	//euclide esteso
+	Anumber x(1);
+	Anumber y(0);
+	
+	eucEx(*this, m, &x, &y);
+	
+	x.show();
+	y.show();
+}
+
+void eucEx(Anumber a, Anumber b, Anumber* x, Anumber* y) {
+	if(b == 0) {
+		*x = 1; *y = 0;
+		return;
+	}
+	else {
+		eucEx(b, a%b, x, y);
+		Anumber temp = *x;
+		*x = *y;
+		*y = (temp-a)/(b*(*y));
+		return;
+	}
 }
 
 void Anumber::split(Anumber *half1, Anumber *half2) {
