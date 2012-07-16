@@ -75,7 +75,7 @@ Anumber Anumber::invers(Anumber m) {
 	y.show();
 }
 
-void eucEx(Anumber a, Anumber b, Anumber* x, Anumber* y) {
+void eucEx(Anumber a, Anumber b, Anumber* x, Anumber* y) { //inverso moltiplicativo
 	if(b == 0) {
 		*x = 1; *y = 0;
 		return;
@@ -175,8 +175,10 @@ bool Anumber::is10pow(){
 	int i;
 	bool found = false;
 	
-	for(i = 0; i!=BUFLEN && !found; i++)
+	for(i = 0; i!=BUFLEN && !found; i++) {
+		if(buffer[i] > 1) return false;
 		if(buffer[i] == 1) found = true;
+	}
 	
 	for(;i!=BUFLEN && found; i++)
 		if(buffer[i] != 0) return false;
@@ -186,19 +188,7 @@ bool Anumber::is10pow(){
 	return false;
 }
 
-Anumber Anumber::pow(Anumber op) { //does not work
-	/*Anumber result;
-	
-	result = *this;
-	
-	Anumber i;
-	while(!(i == op)) {
-		result *= *this;
-		++i;
-	}
-	
-	*this = result;*/
-	
+Anumber Anumber::pow(Anumber op) {
 	printf("doing pow...\n");
 	
 	Anumber returning;
@@ -484,17 +474,29 @@ bool Anumber::operator < (Anumber op) {
 	return false;
 }
 
-void Anumber::operator *= (Anumber op) {
+void Anumber::operator *= (Anumber op) {	
 	Anumber result;
-	result = karatsuba(*this, op);
 	
-	int i;
-	for(i=0; i!=BUFLEN; i++)
-		buffer[i] = result.buffer[i];
-	sign = (sign ^ op.sign);
+	if(op == 0 || *this == 0) {
+		sign = false;
+		memset(buffer, 0, BUFLEN);
+	}
+	else {
+		result = karatsuba(*this, op);
+		int i;
+		for(i=0; i!=BUFLEN; i++)
+			buffer[i] = result.buffer[i];
+		sign = (sign ^ op.sign);
+	}
 }
 
 void Anumber::operator *= (int num) {
+	if(num == 0 || *this == 0) {
+		sign = false;
+		memset(buffer, 0, BUFLEN);
+		return;
+	}
+	
 	float shift = log10(num);
 	
 	if(num % 10 == 0) {
@@ -552,9 +554,24 @@ Anumber Anumber::operator / (char op) {
 	return result;
 }
 
+bool smaller(Anumber num1, Anumber num2, int k, int m) {
+	printf("smaller!\n");
+	int i = BUFLEN - m;
+	
+	while(i != BUFLEN) {
+		printf("[%d]%d < [%d]%d?\n", i-k, num1.buffer[i - k], i, num2.buffer[i]);
+		if(num1.buffer[i - k] != num2.buffer[i])
+			return (num1.buffer[i - k] < num2.buffer[i]);
+		else i++;
+	}
+	
+	return (num1.buffer[i - k] < num2.buffer[i]);
+}
+
 void Anumber::operator /= (Anumber op) {
 	printf("doing division...\n");
 	if(op.is10pow()) {
+		printf("divison by 10^n\n");
 		int i;
 		
 		Anumber returning = op;
@@ -589,50 +606,52 @@ void Anumber::operator /= (Anumber op) {
 	int divisor_len = op.len();
 	
 	char factor = 10 / (op.buffer[BUFLEN - divisor_len] + 1);
+	printf("factor = %d\n", factor);
 	Anumber reminder = *this * factor;
 	Anumber divisor = op * factor;
 	
+	//reminder.buffer[BUFLEN - dividend_len - 1] = 0;
 	
 	printf("reminder ");
 	reminder.show();
 	printf("divisor ");
 	divisor.show();
 	
-	dividend_len = reminder.len();
+	//dividend_len = reminder.len();
 	divisor_len = divisor.len();
 	
 	Anumber part_product;
 	
 	Anumber quotient;
 	
+	printf("starting cycle\n\n");
+	
 	int k;
 	char quotient_digit;
-	for(k = 0; k != dividend_len - divisor_len; k++) {
+	for(k = 0; k <= dividend_len - divisor_len; k++) {
 		printf("reminder "); reminder.show();
-		int rem3 = reminder.buffer[k + (BUFLEN - dividend_len)] * 100 + reminder.buffer[k + (BUFLEN - dividend_len) + 1] * 10 + reminder.buffer[k + (BUFLEN - dividend_len) + 2];
+		int rem3 = reminder.buffer[k + (BUFLEN - dividend_len) - 1] * 100 + reminder.buffer[k + (BUFLEN - dividend_len) + 1 - 1] * 10 + reminder.buffer[k + (BUFLEN - dividend_len) + 2 - 1];
+		//int rem3 = reminder.buffer[BUFLEN - dividend_len] * 100 + reminder.buffer[BUFLEN - dividend_len + 1] * 10 + reminder.buffer[BUFLEN - dividend_len + 2];
 		int div2 = divisor.buffer[(BUFLEN - divisor_len)] * 10 + divisor.buffer[(BUFLEN - divisor_len) + 1];
 		
 		quotient_digit = ((rem3 / div2) < 9) ? (rem3 / div2) : 9;
 		
-		
-		printf("___________\n");
-		divisor.show();
-		printf("%d\n", quotient_digit);
-		printf("___________\n");
+		printf("quotient_digit = %d / %d = %d\n", rem3, div2, quotient_digit);
 		part_product = divisor * quotient_digit;
-		printf("reminder "); reminder.show();
 		printf("part_product "); part_product.show();
-		if(reminder < part_product) {
+		
+		//if(reminder < part_product) {
+		if(smaller(reminder, part_product, (dividend_len - divisor_len) - k, divisor_len)) {
 			printf("<<<<<<<<<<<<<<<<<<\n");
 			quotient_digit = quotient_digit - 1;
 			part_product = divisor * quotient_digit;
+			printf("part_product "); part_product.show();
 		}
 		
 		quotient.buffer[k] = quotient_digit;
 		
-		printf("part_product "); part_product.show();
 		reminder -= part_product;
-		printf("reminder "); reminder.show();
+		printf("\n");
 	}
 	
 	char temp;
@@ -686,23 +705,23 @@ Anumber Anumber::operator % (Anumber op) {
 		result = *this;
 		return result;
 	}
-	printf("trace1\n");
+	
 	Anumber b = 10;
 	Anumber k = op.len();
-	printf("trace1.2\n");
+	
 	Anumber u = b.pow(k*2) / op;
-	printf("trace2\n");
+	
 	Anumber q1 = *this / (b.pow(k-1));
-	printf("trace3\n");
+	
 	Anumber q2 = q1 * u;
 	Anumber q3 = q2 / (b.pow(++k)); //now k is k + 1
-	printf("trace4\n");
+	
 	Anumber r1 = *this % b.pow(k);
 	Anumber r2 = (q3 * op) % b.pow(k);
 	Anumber r = r1 - r2;
-	printf("trace5\n");
+	
 	if(r.sign) r += b.pow(k);
-	printf("trace6\n");
+	
 	while((r > op) || (r == op)) r -= op;
 	printf("...done\n");
 	return r;
