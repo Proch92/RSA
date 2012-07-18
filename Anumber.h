@@ -1,21 +1,25 @@
-#define BUFLEN 200
+#define BUFLEN 2000
 
 class Anumber {
 	public:
 		Anumber();
 		Anumber(char*);
+		Anumber(char*, int);
 		Anumber(int);
 		int len();
-		void split(Anumber*, Anumber*);
+		void split(Anumber*, Anumber*, int);
 		void random();
+		void random(int);
 		void show();
 		void show_all();
 		void invert();
 		void exp10(int);
 		int Alog10();
 		bool is10pow();
+		void shr(int);
 		Anumber invers(Anumber);
 		Anumber pow(Anumber);
+		Anumber modExp(Anumber, Anumber);
 		void operator = (Anumber);
 		void operator = (char);
 		Anumber operator ++ ();
@@ -48,5 +52,5 @@ class Anumber {
 
 Anumber Aabs(Anumber);
 Anumber MCD(Anumber, Anumber);
-Anumber newPrime();
+Anumber newPrime(int);
 bool coprime(Anumber, Anumber);
