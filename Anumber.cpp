@@ -7,7 +7,7 @@
 
 Anumber karatsuba(Anumber, Anumber);
 Anumber schoolbook(Anumber, Anumber);
-void eucEx(Anumber&, Anumber, Anumber&, Anumber&, Anumber&);
+Anumber eucEx(Anumber, Anumber, Anumber&, Anumber&);
 
 Anumber::Anumber() {
 	sign = false;
@@ -99,13 +99,13 @@ void Anumber::shr(int shift) {
 }
 
 Anumber Anumber::invers(Anumber m) {
-	Anumber x(1);
+	Anumber x(0);
 	Anumber y(0);
 	Anumber d;
 	
 	Anumber e = *this;
 	
-	eucEx(e, m, d, x, y);
+	d = eucEx(e, m, x, y);
 	
 	printf("DONE #########################\n");
 	
@@ -118,7 +118,7 @@ Anumber Anumber::invers(Anumber m) {
 	}
 }
 
-void eucEx(Anumber &a, Anumber b, Anumber &d, Anumber &x, Anumber &y) { //inverso moltiplicativo
+/*void eucEx(Anumber &a, Anumber b, Anumber &d, Anumber &x, Anumber &y) { //inverso moltiplicativo
 	if(b == 0) {
 		d = a;
 		x = 1; y = 0;
@@ -129,6 +129,37 @@ void eucEx(Anumber &a, Anumber b, Anumber &d, Anumber &x, Anumber &y) { //invers
 		x = y;
 		y = temp - a / b * y;
 	}
+}*/
+
+Anumber eucEx(Anumber a, Anumber b, Anumber &x, Anumber &y) {
+	if(b == 0) {
+		x = 1; y = 0;
+		return a;
+	}
+	
+	x = 0; y = 1; 
+	Anumber lastx = 1; 
+	Anumber lasty = 0; 
+	Anumber q = 0;
+	while(!(b == 0)) {
+		/*Calcolo MCD Euclide semplice*/
+		q = a / b;
+		Anumber tempa = a;
+		a = b;
+		b = tempa % b;
+		/*Calcolo di MCD(a,b) = ax + by */      
+		/*Calcolo x */
+		Anumber tempx = x;
+		x = lastx - (q * x);
+		lastx = tempx;
+		/*Calcolo y */
+		Anumber tempy = y;
+		y = lasty - (q * y);
+		lasty = tempy;
+	}
+	x = lastx;
+	y = lasty;
+	return a;
 }
 
 void Anumber::split(Anumber *half1, Anumber *half2, int lung) {
