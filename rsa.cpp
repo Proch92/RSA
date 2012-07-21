@@ -11,9 +11,9 @@ struct keyPair {
 void readKeys(struct keyPair*);
 void keyGen(struct keyPair*);
 void encrypt(struct keyPair*);
-void encodeChunk(char*, char*, int);
+void encodeChunk(unsigned char*, unsigned char*, int);
 void decrypt(struct keyPair*);
-void decodeChunk(char*, char*, int);
+void decodeChunk(unsigned char*, unsigned char*, int);
 
 int main (int argc, char **argv) {
 	struct keyPair key;
@@ -34,7 +34,7 @@ int main (int argc, char **argv) {
 }
 
 void encrypt(struct keyPair* key) {
-	FILE* fmessage = fopen("message", "r");
+	FILE* fmessage = fopen("message.txt", "r");
 	FILE* fencrypted = fopen("encryptded", "w");
 	
 	fseek(fmessage, 0, SEEK_END);
@@ -47,8 +47,8 @@ void encrypt(struct keyPair* key) {
 	int chunk_num = length / chunk_size;
 	printf("chunk num = %d\n", chunk_num);
 	
-	char* chunk_encoded = (char*) malloc((chunk_size * 3) + 1);
-	char* chunk = (char*) malloc(chunk_size);
+	unsigned char* chunk_encoded = (unsigned char*) malloc((chunk_size * 3) + 1);
+	unsigned char* chunk = (unsigned char*) malloc(chunk_size);
 	
 	int i;
 	for(i=0; i!=chunk_num; i++) {
@@ -56,7 +56,7 @@ void encrypt(struct keyPair* key) {
 		fread(chunk, 1, chunk_size, fmessage);
 		encodeChunk(chunk, chunk_encoded, chunk_size);
 		
-		Anumber message(chunk_encoded);
+		Anumber message((char*) chunk_encoded);
 		printf("message encoded = "); message.show();
 		Anumber crypted = message.modExp(key->pub, key->n);
 		printf("crypted = "); crypted.show();
@@ -72,13 +72,13 @@ void encrypt(struct keyPair* key) {
 		
 		free(chunk_encoded);
 		free(chunk);
-		char* chunk_encoded = (char*) malloc((last_size * 3) + 2);
-		char* chunk = (char*) malloc(last_size);
+		chunk_encoded = (unsigned char*) malloc((last_size * 3) + 2);
+		chunk = (unsigned char*) malloc(last_size);
 		
 		fread(chunk, 1, last_size, fmessage);
 		encodeChunk(chunk, chunk_encoded, last_size);
 		
-		Anumber message(chunk_encoded);
+		Anumber message((char *) chunk_encoded);
 		printf("message encoded = "); message.show();
 		Anumber crypted = message.modExp(key->pub, key->n);
 		printf("crypted = "); crypted.show();
@@ -94,12 +94,13 @@ void encrypt(struct keyPair* key) {
 	fclose(fencrypted);
 }
 
-void encodeChunk(char* chunk, char* chunk_encoded, int chunk_size) {
+void encodeChunk(unsigned char* chunk, unsigned char* chunk_encoded, int chunk_size) {
 	int i;
-	char* ptr = chunk_encoded;
+	unsigned char* ptr = chunk_encoded;
 	*ptr = '1';
 	ptr++;
 	for(i=0; i!=chunk_size; i++) {
+		printf("%d, %c\n", chunk[i], chunk[i]);
 		*ptr = (chunk[i] % 10) + '0';
 		ptr++;
 		chunk[i] /= 10;
@@ -114,23 +115,22 @@ void decrypt(struct keyPair* key) {
 	FILE* fencrypted = fopen("encryptded", "r");
 	FILE* fdecrypted = fopen("decrypted", "w");
 	
-	char* chunk_encoded;
-	char* chunk;
-	char* ptr;
+	unsigned char* chunk_encoded;
+	unsigned char* chunk;
+	unsigned char* ptr;
 	int size;
 	int chunk_num;
-	bool quit = false;
+	//bool quit = false;
 	
 	const int CHUNK_SIZE = 5000;
 	
-	chunk_encoded = (char*) malloc(CHUNK_SIZE);
+	chunk_encoded = (unsigned char*) malloc(CHUNK_SIZE);
 	ptr = chunk_encoded;
-	char digit;
+	unsigned char digit;
 	size = 0;
-	while(!quit) {
+	while(!feof(fencrypted)) {
 		digit = fgetc(fencrypted);
-		if(digit == EOF) quit = true;
-		else if(digit != ' ') {
+		if(digit != ' ') {
 			*ptr = digit;
 			ptr++;
 			size++;
@@ -139,13 +139,13 @@ void decrypt(struct keyPair* key) {
 			int k;
 			for(k=0; k!=size; k++) chunk_encoded[k] += 48;
 			
-			Anumber crypted(chunk_encoded, size);
+			Anumber crypted((char *)chunk_encoded, size);
 			printf("crypted = "); crypted.show();
 			Anumber message = crypted.modExp(key->pvt, key->n);
 			printf("message decrypted encoded = "); message.show();
 			
-			chunk = (char*) malloc((message.len() - 1) / 3);
-			decodeChunk(chunk, message.buffer + BUFLEN - message.len(), message.len());
+			chunk = (unsigned char*) malloc((message.len() - 1) / 3);
+			decodeChunk(chunk, (unsigned char*) message.buffer + BUFLEN - message.len(), message.len());
 			
 			printf("decoded\n");
 			fwrite(chunk, 1, (message.len() - 1) / 3, fdecrypted);
@@ -155,10 +155,13 @@ void decrypt(struct keyPair* key) {
 			free(chunk);
 		}
 	}
+	
+	fclose(fencrypted);
+	fclose(fdecrypted);
 }
 
-void decodeChunk(char* chunk, char* chunk_encoded, int size) {
-	char *ptr = chunk;
+void decodeChunk(unsigned char* chunk, unsigned char* chunk_encoded, int size) {
+	unsigned char *ptr = chunk;
 	
 	int i = 1; //bisogna scartare l'1 che avevamo messo encriptandolo
 	
@@ -206,4 +209,4 @@ void readKeys(struct keyPair* key) {
 	key->n = n;
 }
 
-//sdfasgdfgdsgrgdfgsrgsgafgegagagregaezfasgeagdg
+//sdfasgdfgdsgrgdfgsrgsgafgegagagregaezfasgeagdgsdfgshgvisabgisdhbguidsbugfdsugaegdghdsfhsth
