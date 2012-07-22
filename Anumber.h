@@ -1,4 +1,4 @@
-#define BUFLEN 2000
+#define BUFLEN 500
 
 class Anumber {
 	public:
@@ -6,6 +6,7 @@ class Anumber {
 		Anumber(char*);
 		Anumber(char*, int);
 		Anumber(int);
+		Anumber(const Anumber&);
 		int len();
 		void split(Anumber*, Anumber*, int);
 		void random();
@@ -19,32 +20,32 @@ class Anumber {
 		void shr(int);
 		Anumber invers(Anumber);
 		Anumber pow(Anumber);
-		Anumber modExp(Anumber, Anumber);
-		void operator = (Anumber);
+		Anumber modExp(Anumber, const Anumber&);
+		void operator = (const Anumber&);
 		void operator = (char);
 		Anumber operator ++ ();
-		void operator += (Anumber);
-		void operator -= (Anumber);
-		Anumber operator + (Anumber);
-		Anumber operator - (Anumber);
+		void operator += (const Anumber&);
+		void operator -= (const Anumber&);
+		Anumber operator + (const Anumber&);
+		Anumber operator - (const Anumber&);
 		Anumber operator - (char);
 		void operator *= (Anumber);
 		void operator *= (int);
-		Anumber operator * (Anumber);
+		Anumber operator * (const Anumber&);
 		Anumber operator * (int);
 		void operator /= (Anumber);
 		void operator /= (char);
-		Anumber operator / (Anumber);
+		Anumber operator / (const Anumber&);
 		Anumber operator / (char);
 		Anumber operator % (Anumber);
 		char operator % (char);
 		Anumber operator ^ (Anumber);
 		void operator ^= (Anumber);
 		bool operator == (int);
-		bool operator == (Anumber);
+		bool operator == (const Anumber&);
 		bool operator != (int);
-		bool operator > (Anumber);
-		bool operator < (Anumber);
+		bool operator > (const Anumber&);
+		bool operator < (const Anumber&);
 		
 		char buffer[BUFLEN];
 		bool sign; //true is negative;
@@ -53,4 +54,4 @@ class Anumber {
 Anumber Aabs(Anumber);
 Anumber MCD(Anumber, Anumber);
 Anumber newPrime(int);
-bool coprime(Anumber, Anumber);
+bool coprime(Anumber&, Anumber&);
