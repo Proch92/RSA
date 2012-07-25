@@ -1,6 +1,7 @@
 #include "Anumber.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "time.h"
 
 struct keyPair {
 	Anumber pub;
@@ -15,6 +16,8 @@ void encodeChunk(unsigned char*, unsigned char*, int);
 void decrypt(struct keyPair*);
 void decodeChunk(unsigned char*, unsigned char*, int);
 
+int numero_chunk;
+
 int main (int argc, char **argv) {
 	struct keyPair key;
 	//keyGen(&key);
@@ -24,11 +27,17 @@ int main (int argc, char **argv) {
 	key.pub.show();
 	key.n.show();
 	
+	long start = time(0);
+	
 	encrypt(&key);
 	printf("encrypted\n\n");
 	
 	decrypt(&key);
 	printf("decrypted\n");
+	
+	long end = time(0);
+	long tempo = end - start;
+	printf("il tempo di esecuzione è: %ds\n", tempo);
 	
 	return 1;
 }
@@ -45,6 +54,7 @@ void encrypt(struct keyPair* key) {
 	int chunk_size = ((key->n).len() - 2) / 3;
 	//printf("chunk size = %d\n", chunk_size);
 	int chunk_num = length / chunk_size;
+	numero_chunk = chunk_num;
 	//printf("chunk num = %d\n", chunk_num);
 	
 	unsigned char* chunk_encoded = (unsigned char*) malloc((chunk_size * 3) + 1);
@@ -131,6 +141,7 @@ void decrypt(struct keyPair* key) {
 	ptr = chunk_encoded;
 	unsigned char digit;
 	size = 0;
+	int j = 0;
 	while(!feof(fencrypted)) {
 		digit = fgetc(fencrypted);
 		if(digit != ' ') {
@@ -139,6 +150,9 @@ void decrypt(struct keyPair* key) {
 			size++;
 		}
 		else {
+			j++;
+			printf("(%d/%d)\n", j, numero_chunk);
+			
 			int k;
 			for(k=0; k!=size; k++) chunk_encoded[k] += 48;
 			
@@ -204,14 +218,14 @@ void keyGen(struct keyPair* key) {
 
 void readKeys(struct keyPair* key) {
 	Anumber e("65537");
-	Anumber d("1566313612777345907799055755564377114598597777438697569779477424564149640433480506656444659315440547759266794017002517360017056024639792557302664815286907137");
-	Anumber n("3399506399542618848835167474248992679806871855212608379607816001247207411083952891013102265076718301662808077136006733812506861100459986200366033132099547053");
-	//Anumber d("17661953");
-	//Anumber n("169909673");
+	//Anumber d("1566313612777345907799055755564377114598597777438697569779477424564149640433480506656444659315440547759266794017002517360017056024639792557302664815286907137");
+	//Anumber n("3399506399542618848835167474248992679806871855212608379607816001247207411083952891013102265076718301662808077136006733812506861100459986200366033132099547053");
+	Anumber d("17661953");
+	Anumber n("169909673");
 	
 	key->pub = e;
 	key->pvt = d;
 	key->n = n;
 }
 
-//sdfasgdfgdsgrgdfgsrgsgafgegagagadfadfasgdfgafgsgdsfgsrfgsdfregaezfasgeagdgsdfgshgvisabgisdhbguidsbugfdsugaegdghdsfhsth
+//sdfasgdfgdsgrgdfgsrgsgafgegagagadfadfasgdfgdfgsdgdgafgsgdsfgsrfgsdfregaezfasgeagdgsdfgshgvisabgisdhbguidsbugfdsugaegdghdsfhsth
