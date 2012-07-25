@@ -12,8 +12,6 @@ Anumber eucEx(Anumber&, Anumber&, Anumber&, Anumber&);
 Anumber::Anumber() {
 	sign = false;
 	
-	//memset(buffer, 0, BUFLEN);
-	
 	srand(time(NULL));
 }
 
@@ -96,8 +94,6 @@ int Anumber::len() {
 		else i++;
 	}
 	
-	if(BUFLEN - i > 400) printf("%d\n", BUFLEN - i);
-	
 	return BUFLEN - i;
 }
 
@@ -109,7 +105,7 @@ void Anumber::shr(int shift) {
 	}
 }
 
-Anumber Anumber::invers(Anumber m) {
+Anumber Anumber::invers(Anumber m) { //not working
 	Anumber x(0);
 	Anumber y(0);
 	Anumber d;
@@ -117,8 +113,6 @@ Anumber Anumber::invers(Anumber m) {
 	Anumber e(*this);
 	
 	d = eucEx(e, m, x, y);
-	
-	printf("DONE #########################\n");
 	
 	Anumber b(1);
 	if ((b % d) == 0)
@@ -128,19 +122,6 @@ Anumber Anumber::invers(Anumber m) {
 		return Anumber(0);
 	}
 }
-
-/*void eucEx(Anumber &a, Anumber b, Anumber &d, Anumber &x, Anumber &y) { //inverso moltiplicativo
-	if(b == 0) {
-		d = a;
-		x = 1; y = 0;
-	}
-	else {
-		eucEx(b, a%b, d, x, y);
-		Anumber temp = x;
-		x = y;
-		y = temp - a / b * y;
-	}
-}*/
 
 Anumber eucEx(Anumber &a, Anumber &b, Anumber &x, Anumber &y) {
 	if(b == 0) {
@@ -153,17 +134,15 @@ Anumber eucEx(Anumber &a, Anumber &b, Anumber &x, Anumber &y) {
 	Anumber lasty(0); 
 	Anumber q(0);
 	while(!(b == 0)) {
-		/*Calcolo MCD Euclide semplice*/
 		q = a / b;
 		Anumber tempa(a);
 		a = b;
 		b = tempa % b;
-		/*Calcolo di MCD(a,b) = ax + by */      
-		/*Calcolo x */
+		
 		Anumber tempx(x);
 		x = lastx - (q * x);
 		lastx = tempx;
-		/*Calcolo y */
+		
 		Anumber tempy(y);
 		y = lasty - (q * y);
 		lasty = tempy;
@@ -175,9 +154,7 @@ Anumber eucEx(Anumber &a, Anumber &b, Anumber &x, Anumber &y) {
 
 void Anumber::split(Anumber *half1, Anumber *half2, int lung) {
 	int i;
-	//int lung = len();
 	int med = lung / 2;
-	//if(lung % 2 == 1) med++;
 	
 	char *tmp = buffer + (BUFLEN - lung);
 	char *tmp1 = half1->buffer + (BUFLEN - (lung - med));
@@ -195,7 +172,6 @@ void Anumber::split(Anumber *half1, Anumber *half2, int lung) {
 }
 
 void Anumber::random() {
-	//sign = rand() % 2;
 	sign = false;
 	
 	int i;
@@ -205,7 +181,6 @@ void Anumber::random() {
 }
 
 void Anumber::random(int len) {
-	//sign = rand() % 2;
 	sign = false;
 	
 	int i;
@@ -223,7 +198,6 @@ void Anumber::show() {
 		printf("-");
 	
 	int i;
-	//printf("len = %d\n", len());
 	for(i=BUFLEN - len(); i!=BUFLEN; i++)
 		printf("%d", buffer[i]);
 	printf("\n");
@@ -335,8 +309,6 @@ void Anumber::operator = (const Anumber& op) {
 	int i;
 	for(i=0; i!=BUFLEN; i++)
 		buffer[i] = op.buffer[i];
-	
-	//strncpy(buffer, op.buffer, BUFLEN);
 	
 	sign = op.sign;
 }
@@ -587,8 +559,6 @@ bool Anumber::operator < (const Anumber& op) {
 }
 
 void Anumber::operator *= (const Anumber& op) {	
-	//Anumber result;
-	
 	if(Aiszero(op) || *this == 0) {
 		sign = false;
 		memset(buffer, 0, BUFLEN);
@@ -772,10 +742,10 @@ Anumber Anumber::operator % (const Anumber& op) {
 	Anumber q1(*this / (b.pow(k-1)));
 	
 	Anumber q2(q1 * u);
-	Anumber q3(q2 / (b.pow(++k))); //now k is k + 1
+	Anumber q3(q2 / (b.pow(++k)));
 	
-	Anumber r1(*this % b.pow(k)); //k è k+1!!!!
-	Anumber r2((q3 * op) % b.pow(k)); //k è k+1!!!!
+	Anumber r1(*this % b.pow(k));
+	Anumber r2((q3 * op) % b.pow(k));
 	Anumber r(r1 - r2);
 	
 	if(r.sign) r = b.pow(k) - (r2 - r1);
@@ -911,7 +881,6 @@ Anumber newPrime(int len) {
 			p.buffer[i] = rand()%10;
 		p.buffer[i] = (rand()%9) + 1;
 		printf("number generated = "); p.show();
-		//Anumber n(len);
 		printf("doing modular exponentation\n");
 		Anumber a(2);
 		Anumber resto(a.modExp(p - 1, p));
@@ -949,5 +918,3 @@ int Alen(const Anumber& input) {
 bool Aiszero(const Anumber& input) {
 	return !(Alen(input));
 }
-
-//sadgghsdhshtgdsfssagagseghedhgehsehfsdhshsfdhthjs
